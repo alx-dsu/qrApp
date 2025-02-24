@@ -1,55 +1,120 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
-import { Camera } from "expo-camera";
+import { View, Text, Button, StyleSheet, TouchableOpacity, Pressable } from "react-native";
+import { CameraView, CameraType, useCameraPermissions, Camera } from "expo-camera";
+
+import ButtonStyle from "@/components/ButtonStyle";
+// import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function Scan() {
-  const [hasPermission, setHasPermission] = useState(null);
+  const [facing, setFacing] = useState('back');
   const [scanned, setScanned] = useState(false);
-  const [text, setText] = useState("");
+  const [qrData, setQrData] = useState(null);
+  const [permission, requestPermission] = useCameraPermissions();
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === "granted");
-    })();
-  }, []);
+  if (!permission) {
+    // Camera permissions are still loading.
+    return <View />;
+  }
+
+  if (!permission.granted) {
+    // Camera permissions are not granted yet.
+    return (
+      <View style={styles.container}>
+        <Text style={styles.message}>We need your permission to show the camera</Text>
+        <Button onPress={requestPermission} title="grant permission" />
+      </View>
+    );
+  }
 
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
-    setText(data);
+    setQrData(data);
+    alert(`QR code with type ${type} and data ${data} has been scanned!`);
   };
 
-  if (hasPermission === null) {
-    return <Text>Solicitando permiso de cámara...</Text>;
-  }
-  if (hasPermission === false) {
-    return <Text>Permiso denegado</Text>;
-  }
+  // function toggleCameraFacing() {
+  //   setFacing(current => (current === 'back' ? 'front' : 'back'));
+  // }
+
+  const resetScan = () => {
+    setScanned(false);
+    setQrData(null);
+  };
 
   return (
     <View style={styles.container}>
-      <Camera
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-        style={styles.scanner}
-        // barCodeScannerSettings={{
-        //   barCodeTypes: ["qr"],
-        // }}
-        // barCodeScannerSettings={{
-        //   barCodeTypes: [Camera.Constants.BarCodeType.qr],
-        // }}
-      />
-      {scanned && (
-        <Button title="Escanear de nuevo" onPress={() => setScanned(false)} />
-      )}
-      <Text style={styles.text}>{text}</Text>
+      <CameraView
+        style={styles.camera}
+        facing={facing}
+        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+      >
+        <View style={styles.buttonContainer}>
+          {/* <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+            <Text style={styles.text}>Flip Camera</Text>
+          </TouchableOpacity> */}
+          {scanned && (
+            // <TouchableOpacity style={styles.button} onPress={resetScan}>
+            //   <Text style={styles.text}>Escanear de Nuevo</Text>
+            // </TouchableOpacity>
+            <ButtonStyle theme="primary" label="Escanear de Nuevo" onPress={resetScan} />
+            // <Pressable
+            //   style={[styles.button, { backgroundColor: "#fff" }]}
+            //   onPress={resetScan}
+            // >
+            //   <Ionicons
+            //     name="scan-circle-outline"
+            //     size={28}
+            //     color="#25292e"
+            //     style={styles.buttonIcon}
+            //   />
+            //   <Text style={[styles.buttonLabel, { color: "#25292e" }]}>
+            //     Escanear de Nuevo
+            //   </Text>
+            // </Pressable>
+          )}
+        </View>
+      </CameraView>
+      {qrData && <Text style={styles.qrText}>Numero de inventario: {qrData}</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  scanner: { width: "100%", height: 300 },
-  text: { marginTop: 20, fontSize: 18 },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  message: {
+    textAlign: 'center',
+    paddingBottom: 10,
+  },
+  camera: {
+    flex: 1,
+  },
+  buttonContainer: {
+  },
+  button: {
+    borderRadius: 10,
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+  buttonLabel: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  text: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  qrText: {
+    textAlign: 'center',
+    fontSize: 18,
+    padding: 10,
+  },
 });
 
 // export default function Scan() {
