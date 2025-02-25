@@ -9,7 +9,7 @@ export default function ButtonStyle({ label, theme, onPress }) {
       <View
         style={[
           styles.buttonContainer,
-          { borderWidth: 4, borderColor: "#ffd33d", borderRadius: 18 },
+          { borderWidth: 4, borderColor: "#44a4af", borderRadius: 18 },
         ]}
       >
         <Pressable

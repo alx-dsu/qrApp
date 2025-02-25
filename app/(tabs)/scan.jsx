@@ -3,7 +3,6 @@ import { View, Text, Button, StyleSheet, TouchableOpacity, Pressable } from "rea
 import { CameraView, CameraType, useCameraPermissions, Camera } from "expo-camera";
 
 import ButtonStyle from "@/components/ButtonStyle";
-// import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function Scan() {
   const [facing, setFacing] = useState('back');
@@ -56,21 +55,7 @@ export default function Scan() {
             // <TouchableOpacity style={styles.button} onPress={resetScan}>
             //   <Text style={styles.text}>Escanear de Nuevo</Text>
             // </TouchableOpacity>
-            <ButtonStyle theme="primary" label="Escanear de Nuevo" onPress={resetScan} />
-            // <Pressable
-            //   style={[styles.button, { backgroundColor: "#fff" }]}
-            //   onPress={resetScan}
-            // >
-            //   <Ionicons
-            //     name="scan-circle-outline"
-            //     size={28}
-            //     color="#25292e"
-            //     style={styles.buttonIcon}
-            //   />
-            //   <Text style={[styles.buttonLabel, { color: "#25292e" }]}>
-            //     Escanear de Nuevo
-            //   </Text>
-            // </Pressable>
+            <ButtonStyle style={styles.button} theme="primary" label="Escanear de Nuevo" onPress={resetScan} />
           )}
         </View>
       </CameraView>
@@ -92,6 +77,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buttonContainer: {
+    width: "100%",
+    height: "175%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   button: {
     borderRadius: 10,
@@ -100,10 +89,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
-  },
-  buttonLabel: {
-    color: "#fff",
-    fontSize: 16,
   },
   text: {
     fontSize: 24,
