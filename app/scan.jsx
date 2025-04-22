@@ -136,8 +136,31 @@
 
 //** FIN Scan ejemplo */
 
+// import QRScanner from "@/components/QRScanner";
+// import { useRouter, useLocalSearchParams } from "expo-router";
+
+// export default function Scan() {
+//   const router = useRouter();
+//   const { userId } = useLocalSearchParams();
+
+//   return (
+//     <QRScanner
+//       onScanned={({ raw, consecutivo, id }) => {
+//         router.replace({
+//           pathname: `/${userId}`,
+//           params: { nuevoInventario: raw },
+//         });
+//         setTimeout(() => router.back(), 100);
+//         alert(`Escaneado: ${raw}`);
+//       }}
+//     />
+//   );
+// }
+
 import QRScanner from "@/components/QRScanner";
+// import { useRouter } from "expo-router";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import EventBus from "@/utils/EventBus";
 
 export default function Scan() {
   const router = useRouter();
@@ -145,14 +168,10 @@ export default function Scan() {
 
   return (
     <QRScanner
-      onScanned={({ raw, consecutivo, id }) => {
-        router.replace({
-          pathname: `/${userId}`,
-          params: { nuevoInventario: raw },
-        });
-        alert(`Escaneado: ${raw}`);
+      onScanned={({ raw }) => {
+        EventBus.emit("qrScanned", raw);  // ⬅️ Emitimos evento
+        router.back();                    // ⬅️ Regresamos sin cambiar navegación
       }}
     />
   );
 }
-
