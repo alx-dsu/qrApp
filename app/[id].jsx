@@ -28,7 +28,8 @@ export default function Detail() {
       const inventarioId = parseInt(consecutivo, 10);
 
       // Puedes hacer el POST aquí
-      fetch(`http://172.16.1.154:8000/api/sci/inventario/${inventarioId}`, {
+      // fetch(`http://172.16.1.154:8000/api/sci/inventario/${inventarioId}/asignar`, {
+      fetch(`http://172.16.1.154:8000/api/sci/inventario/reasignar`, {
         method: "PUT",
         headers: {
           Accept: "application/json",
