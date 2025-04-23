@@ -51,30 +51,10 @@ export function Main() {
           data={filteredUsers}
           keyExtractor={(user) => user.id.toString()}
           renderItem={({ item, index }) => (
-            // <AnimateUserCard user={item} index={index} />
             <MemoizedUserCard user={item} index={index} />
           )}
-          // initialNumToRender={10} // Renderiza solo 10 al inicio
-          // maxToRenderPerBatch={10} // Máximo por lote
-          // windowSize={5} // Reduce la cantidad de elementos fuera de pantalla
-          // getItemLayout={(_, index) => ({
-          //   length: 100, // Altura aproximada de cada elemento
-          //   offset: 100 * index,
-          //   index,
-          // })}
         />
       )}
-      {/* {users.length === 0 ? (
-        <ActivityIndicator size={"large"} />
-      ) : (
-        <FlatList
-          data={users}
-          keyExtractor={(user) => user.id}
-          renderItem={({ item, index }) => (
-            <AnimateUserCard user={item} index={index} />
-          )}
-        />
-      )} */}
     </Screen>
   );
 }

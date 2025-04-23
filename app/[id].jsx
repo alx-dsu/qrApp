@@ -188,14 +188,13 @@ export default function Detail() {
       if (yaExiste) {
         Alert.alert(
           "Inventario ya asignado",
-          "Este inventario ya está asignado al usuario.",
+          `Este inventario ${nuevoInventario} ya está asignado al usuario.`,
           [{ text: "OK" }]
         );
         return;
       }
 
-      fetch(`http://192.168.68.114:8000/api/sci/inventario/reasignar`, {
-      // fetch(`http://172.16.1.154:8000/api/sci/inventario/reasignar`, {
+      fetch(`http://172.16.1.154:8000/api/sci/inventario/reasignar`, {
         method: "PUT",
         headers: {
           Accept: "application/json",
@@ -222,9 +221,16 @@ export default function Detail() {
               setInventarios((prev) => [inv, ...prev]);
               Alert.alert(
                 "Inventario asignado",
-                "El inventario se ha asignado correctamente.",
+                `Descripción: ${inv.descripcion || 'Sin descripción'}\nInventario: ${inv?.inventario || 'N/A'}\nse ha asignado correctamente.`,
                 [{ text: "OK" }]
               );
+            } else {
+              Alert.alert(
+                "Inventario ya asignado",
+                `Este inventario ${inv.inventario} ya está asignado al usuario.`,
+                [{ text: "OK" }]
+              );
+              return;
             }
           } else {
             Alert.alert("Error", data.message || "No se pudo agregar.");
@@ -291,7 +297,6 @@ export default function Detail() {
     try {
       console.log("Eliminando inventario con ID:", id);
       const response = await fetch(`http://172.16.1.154:8000/api/sci/inventario/${id}`, {
-      // const response = await fetch(`http://192.168.68.114:8000/api/sci/inventario/${id}`, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
@@ -322,9 +327,16 @@ export default function Detail() {
     <Screen>
       <Stack.Screen
         options={{
-          headerStyle: { backgroundColor: "#E5E7EB" },
-          headerTintColor: "black",
-          headerTitle: `${userInfo?.user?.nombre ?? "Desconocido"}`,
+          // headerStyle: { 
+          //   backgroundColor: "#25292e", // Fondo oscuro
+          // },
+          // headerTintColor: "#ffffff", // Color blanco para el texto
+          // headerTitleStyle: {
+          //   fontWeight: 'bold',
+          //   fontSize: 15,
+          // },
+          // headerTitle: `${userInfo?.user?.nombre ?? "Desconocido"}`,
+          headerTitle: `${userInfo?.user?.nombre || "[id]"}`, 
         }}
       />
 
@@ -337,7 +349,6 @@ export default function Detail() {
       />
 
       <TouchableOpacity
-        // onPress={() => router.push({ pathname: "/scan", params: { userId: id } })}
         onPress={() => router.push({ pathname: "/scan", params: { userId: id } })}
         style={{
           position: "absolute",

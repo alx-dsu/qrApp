@@ -2,7 +2,6 @@
 // import PropTypes from "prop-types";
 // import Ionicons from "@expo/vector-icons/Ionicons";
 
-
 // export default function ButtonStyle({ label, theme, onPress }) {
 //   if (theme === "primary") {
 //     return (

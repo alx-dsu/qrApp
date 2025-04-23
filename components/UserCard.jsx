@@ -18,7 +18,6 @@ export function UserCard({ user }) {
       active:border-white/50 mb-2 bg-gray-200/10 rounded-xl p-4"
       >
         <View className="flex-row gap-4" key={user.id}>
-          {/* <Image source={{ uri: user.image }} style={styles.image} /> */}
           <Image source={{ uri: user.image }} className="size-24 rounded-full" />
           <View>
             <Text className="mb-1 font-bold" style={styles.title}>

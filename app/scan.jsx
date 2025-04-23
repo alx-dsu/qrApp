@@ -158,7 +158,6 @@
 // }
 
 import QRScanner from "@/components/QRScanner";
-// import { useRouter } from "expo-router";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import EventBus from "@/utils/EventBus";
 

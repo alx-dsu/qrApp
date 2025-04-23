@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, Alert, Stack } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import ButtonStyle from "@/components/ButtonStyle";
+
+// import { useNavigation } from 'expo-router';
+// import { useEffect } from 'react';
 
 export default function QRScanner({ onScanned }) {
 
@@ -9,6 +12,15 @@ export default function QRScanner({ onScanned }) {
   const [scanned, setScanned] = useState(false);
   const [qrData, setQrData] = useState(null);
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
+
+  // const navigation = useNavigation();
+
+  // useEffect(() => {
+  //   navigation.getParent()?.setOptions({
+  //     headerShown: true,
+  //     headerBackVisible: true,
+  //   });
+  // }, [navigation]);
 
   const handleRequestPermission = async () => {
     setIsRequestingPermission(true);
@@ -90,16 +102,16 @@ export default function QRScanner({ onScanned }) {
     onScanned?.({ raw: data, consecutivo, id });
 
     // Mostrar alerta con el código escaneado
-    Alert.alert(
-      "Código escaneado",
-      `Inventario: ${data}`,
-      [
-        { 
-          text: "OK", 
-          onPress: () => setScanned(false) 
-        }
-      ]
-    );
+    // Alert.alert(
+    //   "Código escaneado",
+    //   `Inventario: ${data}`,
+    //   [
+    //     { 
+    //       text: "OK", 
+    //       onPress: () => setScanned(false) 
+    //     }
+    //   ]
+    // );
   };
 
   const resetScan = () => {
