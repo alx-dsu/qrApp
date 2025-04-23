@@ -158,14 +158,14 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Button } from "react";
 import { getUserDetails } from "../lib/users";
 
 import { InvCard, AnimateInvCard } from "../components/InvCard";
 import "../global.css";
 import Screen from "../components/Screen";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import EventBus from "../utils/EventBus"; // ⬅️ Importamos el bus
+import EventBus from "../utils/EventBus"; 
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -180,12 +180,22 @@ export default function Detail() {
 
   // ✅ Escuchar cuando se escanee un inventario
   useEffect(() => {
-    // console.log(nuevoInventario);
     const listener = (nuevoInventario) => {
       const consecutivo = nuevoInventario.slice(-6);
       const inventarioId = parseInt(consecutivo, 10);
 
-      fetch(`http://172.16.1.154:8000/api/sci/inventario/reasignar`, {
+      const yaExiste = inventarios.some(inv => inv.inventario === nuevoInventario);
+      if (yaExiste) {
+        Alert.alert(
+          "Inventario ya asignado",
+          "Este inventario ya está asignado al usuario.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      fetch(`http://192.168.68.114:8000/api/sci/inventario/reasignar`, {
+      // fetch(`http://172.16.1.154:8000/api/sci/inventario/reasignar`, {
         method: "PUT",
         headers: {
           Accept: "application/json",
@@ -197,34 +207,24 @@ export default function Detail() {
         }),
       })
         .then(res => res.json())
-        // .then(data => {
-        //   console.log("Respuesta de agregar inventario:", data);
-        //   const inv = data.inventario;
-        //   if (data && data.Id) {
-        //     const yaExiste = inventarios.some((inv) => inv.Id === data.Id);
-        //     if (!yaExiste) {
-        //       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        //       setInventarios((prev) => [data, ...prev]);
-        //     }
-        //     // setInventarios((prev) => [data, ...prev]);
-        //   } else {
-        //     Alert.alert("Error", data.message || "No se pudo agregar.");
-        //   }
-        // })
         .then(data => {
-          // console.log("Respuesta de agregar inventario:", data);
-  
-          const inv = data.inventario;
+          if (data.error) {
+            Alert.alert("Error", data.message || "Ocurrió un error al asignar el inventario.");
+            return;
+          }
 
-          console.log("Inventario: ", inv);
+          const inv = data.inventario;
           
           if (inv && inv.Id) {
             const yaExiste = inventarios.some((i) => i.Id === inv.Id);
-            // console.log("Quiere decir que ya existe: ", yaExiste);
             if (!yaExiste) {
-              // console.log("Lo da de alta", yaExiste);
               LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
               setInventarios((prev) => [inv, ...prev]);
+              Alert.alert(
+                "Inventario asignado",
+                "El inventario se ha asignado correctamente.",
+                [{ text: "OK" }]
+              );
             }
           } else {
             Alert.alert("Error", data.message || "No se pudo agregar.");
@@ -238,7 +238,7 @@ export default function Detail() {
 
     EventBus.on("qrScanned", listener);
     return () => EventBus.off("qrScanned", listener);
-  }, [id]);
+  }, [id, inventarios]);
   // useEffect(() => {
   //   if (nuevoInventario && idUsuario) {
   //     const consecutivo = nuevoInventario.split("-").pop().replace(/^0+/, "");
@@ -291,6 +291,7 @@ export default function Detail() {
     try {
       console.log("Eliminando inventario con ID:", id);
       const response = await fetch(`http://172.16.1.154:8000/api/sci/inventario/${id}`, {
+      // const response = await fetch(`http://192.168.68.114:8000/api/sci/inventario/${id}`, {
         method: "DELETE",
         headers: {
           Accept: "application/json",

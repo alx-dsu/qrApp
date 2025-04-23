@@ -1,77 +1,80 @@
-// import React, { useState } from "react";
-// import { View, Text, StyleSheet } from "react-native";
-// import { CameraView, useCameraPermissions } from "expo-camera";
-// import ButtonStyle from "@/components/ButtonStyle";
-
-// export default function QRScanner({ onScan }) {
-//   const [facing] = useState('back');
-//   const [scanned, setScanned] = useState(false);
-//   const [permission, requestPermission] = useCameraPermissions();
-
-//   if (!permission) return <View />;
-//   if (!permission.granted) {
-//     return (
-//       <View style={styles.container}>
-//         <Text style={styles.message}>Necesitamos permiso para usar la cámara</Text>
-//         <ButtonStyle theme="primary" label="Conceder permiso" onPress={requestPermission} />
-//       </View>
-//     );
-//   }
-
-//   const handleBarCodeScanned = ({ type, data }) => {
-//     setScanned(true);
-//     if (onScan) onScan(data);
-//   };
-
-//   const resetScan = () => {
-//     setScanned(false);
-//   };
-
-//   return (
-//     <View style={styles.container}>
-//       <CameraView
-//         style={styles.camera}
-//         facing={facing}
-//         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-//       >
-//         {scanned && (
-//           <View style={styles.buttonContainer}>
-//             <ButtonStyle theme="primary" label="Escanear de nuevo" onPress={resetScan} />
-//           </View>
-//         )}
-//       </CameraView>
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: { flex: 1 },
-//   camera: { flex: 1 },
-//   message: { textAlign: 'center', padding: 10 },
-//   buttonContainer: {
-//     flex: 1,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//   },
-// });
-
-// components/QRScanner.jsx
 import React, { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import ButtonStyle from "@/components/ButtonStyle";
 
 export default function QRScanner({ onScanned }) {
+
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [qrData, setQrData] = useState(null);
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
 
-  if (!permission) return <View />;
+  const handleRequestPermission = async () => {
+    setIsRequestingPermission(true);
+    const response = await requestPermission();
+    setIsRequestingPermission(false);
+    
+    if (!response.granted) {
+      alert(
+        'Permiso requerido',
+        'Se necesitan permisos de cámara para escanear QR',
+        [
+          { text: "OK" },
+          { 
+            text: "Abrir configuración", 
+            onPress: () => Linking.openSettings() 
+          }
+        ]
+      );
+    }
+  };
+
+  if (!permission) {
+    return (
+      <View className="justify-center items-center">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   if (!permission.granted) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.message}>Se requiere permiso para usar la cámara</Text>
-        <ButtonStyle label="Conceder permiso" onPress={requestPermission} />
+      <View className="flex-1 bg-gray-900 p-6 justify-center">
+        {/* Icono o logo */}
+        <View className="items-center mb-8">
+          <View className="bg-gray-700 p-4 rounded-full">
+            <Text className="text-white text-2xl">📷</Text>
+          </View>
+        </View>
+
+        {/* Mensaje principal */}
+        <Text className="text-white text-xl font-bold text-center mb-2">
+          Permiso requerido
+        </Text>
+        <Text className="text-gray-400 text-center mb-8">
+          Necesitamos acceso a tu cámara para escanear códigos QR
+        </Text>
+
+        {/* Botón principal */}
+        <ButtonStyle 
+          label="Permitir acceso a la cámara"
+          onPress={handleRequestPermission}
+          disabled={isRequestingPermission}
+          style={{
+            backgroundColor: '#1e40af', // Azul oscuro
+            paddingVertical: 14,
+          }}
+          textStyle={{
+            fontSize: 16,
+            fontWeight: 'bold',
+          }}
+        />
+
+        {/* Nota informativa */}
+        <Text className="text-gray-500 text-xs text-center mt-8">
+          Al permitir el acceso, podrás escanear códigos QR
+        </Text>
       </View>
     );
   }
@@ -85,34 +88,53 @@ export default function QRScanner({ onScanned }) {
     const id = parseInt(consecutivo, 10);
 
     onScanned?.({ raw: data, consecutivo, id });
+
+    // Mostrar alerta con el código escaneado
+    Alert.alert(
+      "Código escaneado",
+      `Inventario: ${data}`,
+      [
+        { 
+          text: "OK", 
+          onPress: () => setScanned(false) 
+        }
+      ]
+    );
   };
 
   const resetScan = () => {
     setScanned(false);
     setQrData(null);
   };
-
+    
   return (
     <View style={styles.container}>
+      {/* Vista de la cámara - elemento principal */}
       <CameraView
         style={styles.camera}
         facing="back"
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
       >
-        <View style={styles.buttonContainer}>
-          {scanned && (
-            <ButtonStyle
-              style={styles.button}
-              theme="primary"
-              label="Escanear de nuevo"
-              onPress={resetScan}
-            />
-          )}
+        {/* Marco transparente para el área de escaneo */}
+        <View style={styles.overlay}>
+          <View style={styles.scanFrame} />
         </View>
       </CameraView>
-      {qrData && (
-        <Text style={styles.qrText}>Número de inventario: {qrData}</Text>
-      )}
+
+      {/* Panel inferior */}
+      <View style={styles.bottomPanel}>
+        {scanned ? (
+          <ButtonStyle
+            label="Escanear Nuevamente"
+            onPress={() => setScanned(false)}
+            style={styles.scanButton}
+          />
+        ) : (
+          <Text style={styles.instructionText}>
+            Enfoca el código QR dentro del marco
+          </Text>
+        )}
+      </View>
     </View>
   );
 }
@@ -120,32 +142,69 @@ export default function QRScanner({ onScanned }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    backgroundColor: '#000',
   },
-  message: {
-    textAlign: "center",
-    paddingBottom: 10,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+  },
+  loadingText: {
+    color: '#fff',
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#121212',
+  },
+  permissionTitle: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  permissionText: {
+    color: '#aaa',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  permissionButton: {
+    width: '80%',
+    backgroundColor: '#1E40AF',
   },
   camera: {
     flex: 1,
+    width: '100%',
   },
-  buttonContainer: {
-    width: "100%",
-    height: "175%",
-    alignItems: "center",
-    justifyContent: "center",
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  button: {
+  scanFrame: {
+    width: 340,
+    height: 340,
+    borderWidth: 2,
+    borderColor: '#44a4af',
     borderRadius: 10,
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
+    backgroundColor: 'rgba(68, 164, 175, 0.1)',
   },
-  qrText: {
-    textAlign: "center",
-    fontSize: 18,
-    padding: 10,
+  bottomPanel: {
+    padding: 20,
+    backgroundColor: '#1F2937',
+    alignItems: 'center',
+  },
+  scanButton: {
+    width: '100%',
+    backgroundColor: '#44a4af',
+  },
+  instructionText: {
+    color: '#fff',
+    textAlign: 'center',
   },
 });
