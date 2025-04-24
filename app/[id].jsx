@@ -54,21 +54,33 @@ export default function Detail() {
   // ✅ Escuchar cuando se escanee un inventario
   // useEffect(() => {
   //   const listener = (nuevoInventario) => {
-  //     const consecutivo = nuevoInventario.slice(-6);
+
+  //     // const texto = "PC- 124-13-003252";
+  //     // const match = texto.match(/(\d+)$/);
+  //     // const resultado = match ? match[0] : null;
+
+  //     // console.log(resultado); // "003252"
+
+  //     // const consecutivo = nuevoInventario.slice(-6);
+  //     // const inventarioId = parseInt(consecutivo, 10);
+  //     const match = nuevoInventario.match(/(\d+)$/);
+  //     const consecutivo = match ? match[0] : null;
   //     const inventarioId = parseInt(consecutivo, 10);
 
-  //     const yaExiste = inventarios.some(inv => inv.inventario === nuevoInventario);
-  //     if (yaExiste) {
-  //       Alert.alert(
-  //         "Inventario ya asignado",
-  //         `Este inventario ${nuevoInventario} ya está asignado al usuario.`,
-  //         [{ text: "OK" }]
-  //       );
-  //       return;
-  //     }
+  //     console.log(`El número consecutivo es: ${consecutivo}`);
 
-  //     // fetch(`http://172.16.1.154:8000/api/sci/inventario/reasignar`, {
-  //     fetch(`http://192.168.68.105:8000/api/sci/inventario/reasignar`, {
+  //     // const Existe = inventarios.some(inv => inv.inventario === nuevoInventario);
+  //     // if (Existe) {
+  //     //   Alert.alert(
+  //     //     "Inventario ya asignado",
+  //     //     `Este inventario ${nuevoInventario} ya está asignado al usuario.`,
+  //     //     [{ text: "OK" }]
+  //     //   );
+  //     //   return;
+  //     // }
+
+  //     fetch(`http://172.16.1.154:8000/api/sci/inventario/reasignar`, {
+  //     // fetch(`http://192.168.68.105:8000/api/sci/inventario/reasignar`, {
   //       method: "PUT",
   //       headers: {
   //         Accept: "application/json",
@@ -88,8 +100,8 @@ export default function Detail() {
 
   //         const inv = data.inventario;
   //         if (inv && inv.Id) {
-  //           const yaExiste = inventarios.some((i) => i.Id === inv.Id);
-  //           if (!yaExiste) {
+  //           const Existe = inventarios.some((i) => i.Id === inv.Id);
+  //           if (!Existe) {
   //             LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   //             setInventarios((prev) => [inv, ...prev]);
   //             Alert.alert(
@@ -119,82 +131,77 @@ export default function Detail() {
   //   return () => EventBus.off("qrScanned", listener);
   // }, [id, inventarios]);
   useEffect(() => {
-    const extraerConsecutivo = (codigoQR) => {
-      // Eliminar espacios y normalizar
-      const codigoLimpio = codigoQR.replace(/\s+/g, '');
-      
-      // Dividir por guiones o espacios y tomar el último segmento
-      const partes = codigoLimpio.split(/[-_ ]+/);
-      const consecutivo = partes[partes.length - 1];
-      
-      // Asegurar que tenga 6 dígitos (rellenar con ceros a la izquierda)
-      return consecutivo.padStart(6, '0');
-    };
-  
-    const listener = async (codigoQR) => {
+    const listener = async (nuevoInventario) => {
       try {
-        const consecutivo = extraerConsecutivo(codigoQR);
-        console.log('Código escaneado:', codigoQR, 'Consecutivo extraído:', consecutivo);
+        const match = nuevoInventario.match(/(\d+)$/);
+        const consecutivo = match ? match[0] : null;
+        
+        console.log(`Procesando:`, { 
+          codigoQR: nuevoInventario, 
+          consecutivo 
+        });
   
-        // Verificar si ya existe (comparando solo por consecutivo)
-        const yaExiste = inventarios.some(inv => 
-          inv.consecutivo === consecutivo
+        // Verificación local primero
+        const existeLocal = inventarios.some(inv => 
+          inv.inventario?.endsWith(consecutivo)
         );
-  
-        if (yaExiste) {
-          const inventarioExistente = inventarios.find(inv => inv.consecutivo === consecutivo);
+        
+        if (existeLocal) {
+          const itemExistente = inventarios.find(inv => 
+            inv.inventario?.endsWith(consecutivo)
+          );
           Alert.alert(
             "Inventario ya asignado",
-            `${inventarioExistente.descripcion} (${consecutivo}) ya está asignado.`,
+            `${itemExistente.descripcion}\n(${nuevoInventario})\nya está asignado al usuario.`,
             [{ text: "OK" }]
           );
           return;
         }
   
-        // Enviar solo el consecutivo a la API
-        const response = await fetch(`http://192.168.68.105:8000/api/sci/inventario/reasignar`, {
+        const response = await fetch(`http://172.16.1.154:8000/api/sci/inventario/reasignar`, {
           method: "PUT",
-          headers: { 
-            Accept: "application/json",
-            "Content-Type": "application/json" 
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
           },
           body: JSON.stringify({
-            consecutivo: consecutivo,
-            id_usuario: id,
+            inventario: nuevoInventario.trim(),
+            id_usuario: id
           }),
         });
   
         const data = await response.json();
   
         if (!response.ok || data.error) {
-          throw new Error(data.message || "Error al reasignar el inventario");
+          throw new Error(data.message || "Error al asignar inventario");
         }
   
         if (!data.inventario?.Id) {
-          throw new Error("El servidor no devolvió un inventario válido");
+          throw new Error("Respuesta inválida del servidor");
         }
   
-        // Actualizar estado
+        // Actualización con animación
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setInventarios(prev => [data.inventario, ...prev]);
         
         Alert.alert(
-          "Éxito",
-          `${data.inventario.descripcion} (${data.inventario.consecutivo}) asignado.`,
+          "Asignado correctamente",
+          `Descripción: ${data.inventario.descripcion || 'Sin descripción'}\nInventario: ${nuevoInventario || 'N/A'}\nse ha asignado correctamente.`,
+          // `${data.inventario.descripcion} (${nuevoInventario})`,
           [{ text: "OK" }]
         );
   
       } catch (error) {
-        console.error("Error en escaneo:", {
-          codigoQR,
-          error: error.message
-        });
+        // console.error("Error en escaneo:", {
+        //   error: error.message,
+        //   timestamp: new Date().toISOString()
+        // });
         
         Alert.alert(
-          "Error",
+          "Error", 
           error.message.includes("no encontrado") 
-            ? `El consecutivo no existe en la base de datos`
-            : error.message
+            ? `El inventario no existe en el sistema`
+            : error.message || "Error al procesar el QR"
         );
       }
     };
@@ -205,8 +212,8 @@ export default function Detail() {
 
   const handleDeleteInventario = useCallback(async (id) => {
     try {
-      // const response = await fetch(`http://172.16.1.154:8000/api/sci/inventario/${id}`, {
-      const response = await fetch(`http://192.168.68.105:8000/api/sci/inventario/${id}`, {
+      const response = await fetch(`http://172.16.1.154:8000/api/sci/inventario/${id}`, {
+      // const response = await fetch(`http://192.168.68.105:8000/api/sci/inventario/${id}`, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
@@ -249,8 +256,6 @@ export default function Detail() {
           data={inventarios}
           className="px-5"
           keyExtractor={(inv) => inv.Id.toString()}
-          // keyExtractor={(item) => item.Id.toString()}
-          // keyExtractor={(item) => `${item.Id}-${item.inventario}`}
           renderItem={({ item, index }) => (
             <AnimateInvCard item={item} index={index} onDelete={handleDeleteInventario} />
           )}
