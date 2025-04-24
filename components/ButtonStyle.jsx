@@ -1,132 +1,60 @@
-// import { StyleSheet, View, Pressable, Text } from "react-native";
-// import PropTypes from "prop-types";
-// import Ionicons from "@expo/vector-icons/Ionicons";
-
-// export default function ButtonStyle({ label, theme, onPress }) {
-//   if (theme === "primary") {
-//     return (
-//       <View
-//         style={[
-//           styles.buttonContainer,
-//           { borderWidth: 4, borderColor: "#44a4af", borderRadius: 18 },
-//         ]}
-//       >
-//         <Pressable
-//           style={[styles.button, { backgroundColor: "#fff" }]}
-//           onPress={onPress}
-//         >
-//           <Ionicons
-//             name="scan-circle-outline"
-//             size={20}
-//             color="#25292e"
-//             style={styles.buttonIcon}
-//           />
-//           <Text style={[styles.buttonLabel, { color: "#25292e" }]}>
-//             {label}
-//           </Text>
-//         </Pressable>
-//       </View>
-//     );
-//   }
-//   return (
-//     <View style={styles.buttonContainer}>
-//       <Pressable
-//         style={styles.button}
-//         onPress={onPress}
-//         // onPress={() => alert("You pressed a button.")}
-//       >
-//         <Text style={styles.buttonLabel}>{label}</Text>
-//       </Pressable>
-//     </View>
-//   );
-// }
-
-// ButtonStyle.propTypes = {
-//   label: PropTypes.string.isRequired,
-//   theme: PropTypes.string,
-//   onPress: PropTypes.func,
-// };
-
-// const styles = StyleSheet.create({
-//   buttonContainer: {
-//     width: 200,
-//     height: 60,
-//     alignItems: "center",
-//     justifyContent: "center",
-//     padding: 3,
-//   },
-//   button: {
-//     borderRadius: 10,
-//     width: "100%",
-//     height: "100%",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     flexDirection: "row",
-//   },
-//   buttonIcon: {
-//     paddingRight: 8,
-//   },
-//   buttonLabel: {
-//     color: "#fff",
-//     fontSize: 16,
-//   },
-// });
-import { StyleSheet, View, Pressable, Text } from "react-native";
+import { View, Pressable, Text } from "react-native";
 import PropTypes from "prop-types";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import "../global.css"
 
 export default function ButtonStyle({ 
   label, 
   theme, 
   onPress, 
   disabled = false,
-  style = {}, // Prop para estilos personalizados del contenedor
-  textStyle = {}, // Prop para estilos personalizados del texto
-  iconName = "scan-circle-outline" // Icono por defecto
+  className = "", 
+  textClassName = "",
+  iconName = "scan-circle-outline"
 }) {
-  // Estilos base
-  const baseButtonStyles = [
-    styles.button,
-    theme === "primary" && styles.primaryButton,
-    disabled && styles.disabledButton,
-    style // Estilos personalizados
-  ];
+  // Clases base para el contenedor
+  const containerClasses = `
+    w-full my-2 rounded-xl overflow-hidden
+    ${theme === "primary" ? "border-2 border-teal-400" : ""}
+  `;
 
-  const baseTextStyles = [
-    styles.buttonLabel,
-    theme === "primary" && styles.primaryButtonLabel,
-    textStyle // Estilos personalizados del texto
-  ];
+  // Clases base para el botón
+  const buttonClasses = `
+    py-3 px-6 rounded-lg flex-row items-center justify-center
+    ${theme === "primary" ? "bg-white" : "bg-gray-800"}
+    ${disabled ? "opacity-60" : ""}
+    ${className}
+  `;
 
-  if (theme === "primary") {
-    return (
-      <View style={[styles.buttonContainer, styles.primaryContainer]}>
-        <Pressable
-          style={baseButtonStyles}
-          onPress={onPress}
-          disabled={disabled}
-          android_ripple={{ color: '#2d8c9e' }}
-        >
+  // Clases para el texto
+  const textClasses = `
+    text-base font-medium
+    ${theme === "primary" ? "text-gray-900" : "text-white"}
+    ${textClassName}
+  `;
+
+  // Clases para el ícono
+  const iconClasses = `
+    mr-2
+    ${theme === "primary" ? "text-gray-900" : "text-white"}
+  `;
+
+  return (
+    <View className={containerClasses}>
+      <Pressable
+        className={buttonClasses}
+        onPress={onPress}
+        disabled={disabled}
+        android_ripple={{ color: theme === "primary" ? '#2d8c9e' : '#444' }}
+      >
+        {theme === "primary" && (
           <Ionicons
             name={iconName}
             size={20}
-            style={styles.buttonIcon}
+            className={iconClasses}
           />
-          <Text style={baseTextStyles}>{label}</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.buttonContainer}>
-      <Pressable
-        style={baseButtonStyles}
-        onPress={onPress}
-        disabled={disabled}
-        android_ripple={{ color: '#333' }}
-      >
-        <Text style={baseTextStyles}>{label}</Text>
+        )}
+        <Text className={textClasses}>{label}</Text>
       </Pressable>
     </View>
   );
@@ -137,47 +65,7 @@ ButtonStyle.propTypes = {
   theme: PropTypes.string,
   onPress: PropTypes.func,
   disabled: PropTypes.bool,
-  style: PropTypes.object,
-  textStyle: PropTypes.object,
+  className: PropTypes.string,
+  textClassName: PropTypes.string,
   iconName: PropTypes.string
 };
-
-const styles = StyleSheet.create({
-  buttonContainer: {
-    width: '100%',
-    marginVertical: 8,
-    borderRadius: 10,
-    overflow: 'hidden', // Para que el ripple effect no se salga del borde
-  },
-  primaryContainer: {
-    borderWidth: 2,
-    borderColor: '#44a4af',
-  },
-  button: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    backgroundColor: '#333',
-  },
-  primaryButton: {
-    backgroundColor: '#fff',
-  },
-  buttonLabel: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  primaryButtonLabel: {
-    color: '#25292e',
-  },
-  buttonIcon: {
-    marginRight: 8,
-    color: '#25292e',
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-});

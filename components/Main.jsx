@@ -4,10 +4,10 @@ import {
   FlatList, 
   TextInput, 
   View,
+  Text,
 } from "react-native";
 import "../global.css";
-
-import { getLatestUsers } from "../lib/users.js";
+import { getLatestUsers } from "@/lib/users.js";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { UserCard, AnimateUserCard } from "./UserCard.jsx";
 import Screen from "./Screen.jsx";
@@ -16,13 +16,15 @@ export function Main() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
     getLatestUsers().then((users) => {
       setUsers(users);
       setFilteredUsers(users);
-    });
+    })
+    .finally(() => setIsLoading(false));
   }, []);
 
   const handleSearch = (text) => {
@@ -37,22 +39,39 @@ export function Main() {
 
   return (
     <Screen>
-      <TextInput
-        placeholder="Buscar usuario..."
-        value={search}
-        onChangeText={handleSearch}
-        className="border border-gray-400 rounded-xl p-2 my-2 text-white"
-      />
+      <View className="px-4 pt-2 pb-2 bg-black">
+        <TextInput
+          placeholder="Buscar usuario..."
+          placeholderTextColor="#9CA3AF" // Color gris para el placeholder
+          value={search}
+          onChangeText={handleSearch}
+          className="border border-gray-600 rounded-xl p-3 text-white bg-gray-800"
+          selectionColor="#44a4af" // Color del cursor
+        />
+      </View>
 
-      {filteredUsers.length === 0 ? (
-        <ActivityIndicator size={"large"} />
+      {/* Estado de carga */}
+      {isLoading ? (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#44a4af" />
+        </View>
       ) : (
+        /* Lista de usuarios */
         <FlatList
           data={filteredUsers}
           keyExtractor={(user) => user.id.toString()}
           renderItem={({ item, index }) => (
-            <MemoizedUserCard user={item} index={index} />
+            // <MemoizedUserCard user={item} index={index} />
+            <AnimateUserCard user={item} index={index} />
           )}
+          ListEmptyComponent={
+            <View className="flex-1 justify-center items-center mt-10">
+              <Text className="text-gray-400 text-lg">
+                {search ? "No se encontraron resultados" : "No hay usuarios registrados"}
+              </Text>
+            </View>
+          }
+          contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
         />
       )}
     </Screen>

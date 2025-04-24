@@ -4,45 +4,6 @@ import "../global.css";
 
 export default function InvCard({ item, onPrepareDelete   }) {
 
-  // const [isDeleting, setIsDeleting] = useState(false);
-
-  // const handleDelete = async (Id) => {
-
-  //   if (isDeleting) return; // Evita segunda ejecución
-
-  //   setIsDeleting(true);
-  //   console.log("Eliminando inventario con ID:", Id);
-
-  //   try {
-
-  //     console.log(`Eliminando inventario con ID: ${item.Id}`);
-
-  //     const response = await fetch(`http://172.16.1.154:8000/api/sci/inventario/${item.Id}`, {
-  //       method: "DELETE",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-
-  //     const responseData = await response.json();
-  //     console.log("Respuesta de la API:", responseData);
-
-  //     if (response.ok) {
-  //       console.log("Eliminado correctamente, llamando a onDelete");
-  //       // onDelete(item.Id);
-  //       onDelete();
-  //     } else {
-  //       console.error("Error al eliminar:", data);
-  //       // Alert.alert("Error", "No se pudo eliminar el inventario");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error en la solicitud:", error);
-  //     // Alert.alert("Error", "Hubo un problema de conexión");
-  //   } finally {
-  //     setIsDeleting(false);
-  //   }
-  // };
-
   if (!item) {
     return null;
   }
@@ -64,7 +25,10 @@ export default function InvCard({ item, onPrepareDelete   }) {
   };
 
   return (
-    <View className="active:opacity-70 border border-black active:border-white/50 mb-2 bg-gray-200/10 rounded-xl p-4">
+    <View 
+      className="active:opacity-70 border border-black 
+    active:border-white/50 mb-2 bg-gray-200/10 rounded-xl p-4"
+    >
       <Text className="text-white font-bold">
         {item.descripcion || "Descripción no disponible"}
       </Text>
@@ -84,18 +48,6 @@ export function AnimateInvCard({ item, index, onDelete }) {
   const height = useRef(new Animated.Value(0)).current;
   const viewRef = useRef(null);
   const [measuredHeight, setMeasuredHeight] = useState(null);
-
-  // useEffect(() => {
-  //   if (measuredHeight !== null) {
-  //     height.setValue(measuredHeight);
-  //     Animated.timing(opacity, {
-  //       toValue: 1,
-  //       duration: 300,
-  //       delay: index * 50,
-  //       useNativeDriver: true,
-  //     }).start();
-  //   }
-  // }, [measuredHeight]);
 
   const handlePrepareDelete = () => {
     Animated.parallel([
@@ -147,12 +99,5 @@ export function AnimateInvCard({ item, index, onDelete }) {
         </Animated.View>
       )}
     </>
-    // <Animated.View style={{ height, overflow: "hidden", marginBottom: 8 }}>
-    //   <Animated.View style={{ opacity }}>
-    //     <View onLayout={onLayout} style={{ position: 'absolute', opacity: 0, zIndex: -1 }}>
-    //       <InvCard item={item} onPrepareDelete={handlePrepareDelete} />
-    //     </View>
-    //   </Animated.View>
-    // </Animated.View>
   );
 }

@@ -1,26 +1,17 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, Alert, Stack } from "react-native";
+import { View, Text, ActivityIndicator, Linking, Dimensions } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import ButtonStyle from "@/components/ButtonStyle";
+import { qrScannerStyles } from "@/utils/styles";
+import "../global.css"
 
-// import { useNavigation } from 'expo-router';
-// import { useEffect } from 'react';
+const { width } = Dimensions.get('window');
+const SCAN_FRAME_SIZE = width * 0.8; // Marco ocupará 80% del ancho
 
 export default function QRScanner({ onScanned }) {
-
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
-  const [qrData, setQrData] = useState(null);
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
-
-  // const navigation = useNavigation();
-
-  // useEffect(() => {
-  //   navigation.getParent()?.setOptions({
-  //     headerShown: true,
-  //     headerBackVisible: true,
-  //   });
-  // }, [navigation]);
 
   const handleRequestPermission = async () => {
     setIsRequestingPermission(true);
@@ -28,7 +19,7 @@ export default function QRScanner({ onScanned }) {
     setIsRequestingPermission(false);
     
     if (!response.granted) {
-      alert(
+      Alert.alert(
         'Permiso requerido',
         'Se necesitan permisos de cámara para escanear QR',
         [
@@ -44,8 +35,8 @@ export default function QRScanner({ onScanned }) {
 
   if (!permission) {
     return (
-      <View className="justify-center items-center">
-        <ActivityIndicator size="large" />
+      <View className="flex-1 justify-center items-center bg-black">
+        <ActivityIndicator size="large" color="#44a4af" />
       </View>
     );
   }
@@ -73,14 +64,8 @@ export default function QRScanner({ onScanned }) {
           label="Permitir acceso a la cámara"
           onPress={handleRequestPermission}
           disabled={isRequestingPermission}
-          style={{
-            backgroundColor: '#1e40af', // Azul oscuro
-            paddingVertical: 14,
-          }}
-          textStyle={{
-            fontSize: 16,
-            fontWeight: 'bold',
-          }}
+          className="bg-blue-800 py-3"
+          textClassName="text-base font-bold"
         />
 
         {/* Nota informativa */}
@@ -91,58 +76,38 @@ export default function QRScanner({ onScanned }) {
     );
   }
 
-  const handleBarCodeScanned = ({ type, data }) => {
+  const handleBarCodeScanned = ({ data }) => {
     setScanned(true);
-    setQrData(data);
-
     const partes = data.split('-');
     const consecutivo = partes[partes.length - 1];
     const id = parseInt(consecutivo, 10);
-
     onScanned?.({ raw: data, consecutivo, id });
-
-    // Mostrar alerta con el código escaneado
-    // Alert.alert(
-    //   "Código escaneado",
-    //   `Inventario: ${data}`,
-    //   [
-    //     { 
-    //       text: "OK", 
-    //       onPress: () => setScanned(false) 
-    //     }
-    //   ]
-    // );
-  };
-
-  const resetScan = () => {
-    setScanned(false);
-    setQrData(null);
   };
     
   return (
-    <View style={styles.container}>
-      {/* Vista de la cámara - elemento principal */}
+    <View className="flex-1 bg-black">
+      {/* Vista de la cámara */}
       <CameraView
-        style={styles.camera}
+        style={qrScannerStyles.camera}
         facing="back"
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
       >
-        {/* Marco transparente para el área de escaneo */}
-        <View style={styles.overlay}>
-          <View style={styles.scanFrame} />
-        </View>
+        {/* Overlay y marco de escaneo */}
+        <View 
+          style={
+            qrScannerStyles.scanFrame}
+        />
       </CameraView>
-
       {/* Panel inferior */}
-      <View style={styles.bottomPanel}>
+      <View className="px-5 py-4 bg-gray-800 items-center">
         {scanned ? (
           <ButtonStyle
             label="Escanear Nuevamente"
             onPress={() => setScanned(false)}
-            style={styles.scanButton}
+            className="w-full bg-teal-500"
           />
         ) : (
-          <Text style={styles.instructionText}>
+          <Text className="text-white text-center">
             Enfoca el código QR dentro del marco
           </Text>
         )}
@@ -150,73 +115,3 @@ export default function QRScanner({ onScanned }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
-  },
-  loadingText: {
-    color: '#fff',
-  },
-  permissionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#121212',
-  },
-  permissionTitle: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  permissionText: {
-    color: '#aaa',
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-  permissionButton: {
-    width: '80%',
-    backgroundColor: '#1E40AF',
-  },
-  camera: {
-    flex: 1,
-    width: '100%',
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  scanFrame: {
-    width: 340,
-    height: 340,
-    borderWidth: 2,
-    borderColor: '#44a4af',
-    borderRadius: 10,
-    backgroundColor: 'rgba(68, 164, 175, 0.1)',
-  },
-  bottomPanel: {
-    padding: 20,
-    backgroundColor: '#1F2937',
-    alignItems: 'center',
-  },
-  scanButton: {
-    width: '100%',
-    backgroundColor: '#44a4af',
-  },
-  instructionText: {
-    color: '#fff',
-    textAlign: 'center',
-  },
-});
