@@ -1,12 +1,16 @@
 import React, { useState } from "react";
-import { View, Text, ActivityIndicator, Linking, Dimensions } from "react-native";
+import { View, Text, ActivityIndicator, Linking, Dimensions, Alert } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import ButtonStyle from "@/components/ButtonStyle";
 import { qrScannerStyles } from "@/utils/styles";
 import "../global.css"
 
-const { width } = Dimensions.get('window');
-const SCAN_FRAME_SIZE = width * 0.8; // Marco ocupará 80% del ancho
+// import * as Haptics from 'expo-haptics';
+// import { Audio } from 'expo-av';
+// import { useCallback } from 'react';
+
+// const { width } = Dimensions.get('window');
+// const SCAN_FRAME_SIZE = width * 0.8; // Marco ocupará 80% del ancho
 
 export default function QRScanner({ onScanned }) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -75,6 +79,21 @@ export default function QRScanner({ onScanned }) {
       </View>
     );
   }
+
+  // const playSound = useCallback(async () => {
+  //   const { sound } = await Audio.Sound.createAsync(
+  //     // require('@/assets/sounds/beep.mp3')
+  //   );
+  //   await sound.playAsync();
+  // }, []);
+
+  // const handleBarCodeScanned = useCallback(async ({ data }) => {
+  //   setScanned(true);
+  //   await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  //   await playSound();
+    
+  //   onScanned?.({ raw: data });
+  // }, [onScanned, playSound]);
 
   const handleBarCodeScanned = ({ data }) => {
     setScanned(true);
