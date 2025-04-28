@@ -233,7 +233,7 @@ export default function UserDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  // const [search, setSearch] = useState('');
+  const [search, setSearch] = useState('');
 
   // Consulta para obtener detalles del usuario
   const { 
@@ -284,24 +284,49 @@ export default function UserDetailScreen() {
   });
 
   // Mutación para eliminar inventario
+  // const deleteMutation = useMutation({
+    // mutationFn: deleteInventario,
+    // onMutate: async (inventarioId) => {
+    //   await queryClient.cancelQueries(['user', id]);
+    //   const previousData = queryClient.getQueryData(['user', id]);
+      
+    //   queryClient.setQueryData(['user', id], (old) => ({
+    //     ...old,
+    //     inventarios: old.inventarios.filter(inv => inv.Id !== inventarioId),
+    //   }));
+      
+    //   return { previousData };
+    // },
+    // onError: (error, variables, context) => {
+    //   queryClient.setQueryData(['user', id], context.previousData);
+    //   Alert.alert('Error', 'No se pudo eliminar el inventario');
+    // },
+  // });
   const deleteMutation = useMutation({
     mutationFn: deleteInventario,
-    onMutate: async (inventarioId) => {
-      await queryClient.cancelQueries(['user', id]);
-      const previousData = queryClient.getQueryData(['user', id]);
-      
+    onSuccess: (deletedId) => {
       queryClient.setQueryData(['user', id], (old) => ({
         ...old,
-        inventarios: old.inventarios.filter(inv => inv.Id !== inventarioId),
+        inventarios: old.inventarios.filter(inv => inv.Id !== deletedId),
       }));
-      
-      return { previousData };
     },
-    onError: (error, variables, context) => {
-      queryClient.setQueryData(['user', id], context.previousData);
+    onError: (error) => {
       Alert.alert('Error', 'No se pudo eliminar el inventario');
-    },
+      // Aquí podrías agregar lógica para revertir visualmente si es necesario
+    }
   });
+
+  // Función de eliminación simplificada
+  const handleDelete = useCallback((inventarioId) => {
+    Alert.alert(
+      'Confirmar eliminación',
+      '¿Estás seguro de eliminar este inventario?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar', onPress: () => deleteMutation.mutate(inventarioId) }
+      ]
+    );
+  }, []);
 
   // Manejo del escaneo QR
   useEffect(() => {
@@ -342,20 +367,27 @@ export default function UserDetailScreen() {
   }, [userData, search]);
 
   // Renderizar item de la lista (memoizado)
+  // const renderItem = useCallback(({ item, index }) => (
+    // <AnimateInvCard 
+    //   item={item} 
+    //   index={index}
+    //   onDelete={() => {
+    //     Alert.alert(
+    //       'Confirmar eliminación',
+    //       '¿Estás seguro de eliminar este inventario?',
+    //       [
+    //         { text: 'Cancelar', style: 'cancel' },
+    //         { text: 'Eliminar', onPress: () => deleteMutation.mutate(item.Id) }
+    //       ]
+    //     );
+    //   }}
+    // />
+  // ), []);
   const renderItem = useCallback(({ item, index }) => (
     <AnimateInvCard 
       item={item} 
       index={index}
-      onDelete={() => {
-        Alert.alert(
-          'Confirmar eliminación',
-          '¿Estás seguro de eliminar este inventario?',
-          [
-            { text: 'Cancelar', style: 'cancel' },
-            { text: 'Eliminar', onPress: () => deleteMutation.mutate(item.Id) }
-          ]
-        );
-      }}
+      onDelete={deleteMutation.mutate}
     />
   ), []);
 
@@ -411,7 +443,8 @@ export default function UserDetailScreen() {
       {/* Componentes de estado de mutaciones */}
       <MutationStatus 
         mutation={reasignarMutation} 
-        successMessage="Inventario asignado correctamente"
+        // successMessage="Inventario asignado correctamente"
+        successMessage={`Inventario asignado correctamente`}
       />
       
       <MutationStatus
