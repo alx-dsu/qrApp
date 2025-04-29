@@ -9,7 +9,8 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
-  Button
+  Button,
+  RefreshControl 
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -30,6 +31,13 @@ export default function UserDetailScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    refetch().finally(() => setRefreshing(false));
+  }, [refetch]);
 
   // Consulta para obtener detalles del usuario
   const { 
@@ -229,7 +237,15 @@ export default function UserDetailScreen() {
         data={filteredInventarios}
         keyExtractor={(item) => `inv-${item.Id}-${item.consecutivo}`}
         renderItem={renderItem}
-        extraData={reasignarMutation.isSuccess} // Forzar actualización cuando hay cambios
+        // extraData={reasignarMutation.isSuccess} // Forzar actualización cuando hay cambios
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#44a4af']}
+            tintColor="#44a4af"
+          />
+        }
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center mt-20">
             <Text className="text-white text-lg">
