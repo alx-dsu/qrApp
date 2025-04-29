@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState  } from "react";
+import { useEffect, useRef, useState, useCallback   } from "react";
 import { View, Text, Animated, Alert, Pressable } from "react-native";
 import "../global.css";
 
@@ -37,7 +37,11 @@ export default function InvCard({ item, onDelete }) {
         Inventario: {item.inventario || "N/A"}
       </Text>
       {/* <Pressable onPress={handleDelete} className="mt-2 bg-red-500 p-2 rounded-xl"> */}
-      <Pressable onPress={() => onDelete(item.Id)}  className="mt-2 bg-red-500 p-2 rounded-xl">
+      {/* <Pressable onPress={() => onDelete(item.Id)}  className="mt-2 bg-red-500 p-2 rounded-xl"> */}
+      <Pressable 
+        onPress={onDelete} // Solo pasa la función, no ejecuta
+        className="mt-2 bg-red-500 p-2 rounded-xl"
+      >
         <Text className="text-white text-center">Eliminar</Text>
       </Pressable>
     </View>
@@ -52,23 +56,8 @@ export function AnimateInvCard({ item, index, onDelete }) {
   const [measuredHeight, setMeasuredHeight] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // const handlePrepareDelete = () => {
-  //   Animated.parallel([
-  //     Animated.timing(opacity, {
-  //       toValue: 0,
-  //       duration: 300,
-  //       useNativeDriver: true,
-  //     }),
-  //     Animated.timing(height, {
-  //       toValue: 0,
-  //       duration: 300,
-  //       useNativeDriver: false, // ✅ importante
-  //     }),
-  //   ]).start(() => {
-  //     onDelete(item.Id);
-  //   });
-  // };
   const handleDelete = () => {
+    // Animación de salida
     Alert.alert(
       'Confirmar eliminación',
       '¿Estás seguro de eliminar este inventario?',
@@ -76,12 +65,18 @@ export function AnimateInvCard({ item, index, onDelete }) {
         { 
           text: 'Cancelar', 
           style: 'cancel',
-          onPress: () => setIsDeleting(false)
+          onPress: () => {
+            // Opcional: Animación para "cancelar" si es necesario
+            Animated.timing(opacity, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: true,
+            }).start();
+          }
         },
         { 
-          text: 'Eliminar', 
+          text: 'Eliminar',
           onPress: () => {
-            setIsDeleting(true);
             // Animación de salida
             Animated.parallel([
               Animated.timing(opacity, {
@@ -95,8 +90,8 @@ export function AnimateInvCard({ item, index, onDelete }) {
                 useNativeDriver: false,
               }),
             ]).start(() => {
+              // Llamar a la eliminación REAL después de la animación
               onDelete(item.Id);
-              setIsDeleting(false);
             });
           }
         }
@@ -108,8 +103,7 @@ export function AnimateInvCard({ item, index, onDelete }) {
     if (!measuredHeight) {
       const h = e.nativeEvent.layout.height;
       setMeasuredHeight(h);
-      height.setValue(h); // importante para colapso
-
+      height.setValue(h);
       Animated.timing(opacity, {
         toValue: 1,
         duration: 300,
@@ -131,8 +125,8 @@ export function AnimateInvCard({ item, index, onDelete }) {
 
       {/* animated version */}
       {measuredHeight && (
-        <Animated.View style={{ height: isDeleting ? height : measuredHeight, overflow: "hidden", marginBottom: 8 }}>
-          <Animated.View style={{ opacity: isDeleting ? opacity : 1 }}>
+        <Animated.View style={{ height: height, overflow: "hidden", marginBottom: 8 }}>
+          <Animated.View style={{ opacity: opacity }}>
             {/* <InvCard item={item} onPrepareDelete={handlePrepareDelete} /> */}
             <InvCard item={item} onDelete={handleDelete} />
           </Animated.View>

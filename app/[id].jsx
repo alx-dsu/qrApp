@@ -1,207 +1,3 @@
-// import {
-//   FlatList,
-//   ActivityIndicator,
-//   Text,
-//   View,
-//   Image,
-//   Alert,
-//   Platform,
-//   UIManager,
-//   LayoutAnimation,
-//   TouchableOpacity,
-// } from "react-native";
-// import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-// import { useEffect, useState, Button, useCallback  } from "react";
-// import { getUserDetails, reasignarInventario, deleteInventario  } from "@/lib/users";
-
-// import { InvCard, AnimateInvCard } from "@/components/InvCard";
-// import "../global.css";
-// import Screen from "../components/Screen";
-// import Ionicons from "@expo/vector-icons/Ionicons";
-// import EventBus from "@/utils/EventBus"; 
-
-// if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-//   UIManager.setLayoutAnimationEnabledExperimental(true);
-// }
-
-// export default function Detail() {
-//   const { id  } = useLocalSearchParams();
-//   const [userInfo, setUserInfo] = useState(null);
-//   const [inventarios, setInventarios] = useState([]);
-
-//   const [isLoading, setIsLoading] = useState(true);
-
-//   const router = useRouter();
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       try {
-//         setIsLoading(true);
-//         const data = await getUserDetails(id);
-//         setUserInfo(data);
-//         setInventarios(data.inventarios || []);
-//       } catch (error) {
-//         console.error(error);
-//         Alert.alert("Error", "No se pudo cargar la información");
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
-
-//     if (id) fetchData();
-//   }, [id]);
-
-//   // ✅ Escuchar cuando se escanee un inventario
-//   useEffect(() => {
-//     const listener = async (nuevoInventario) => {
-//       try {
-//         const match = nuevoInventario.match(/(\d+)$/);
-//         const consecutivo = match ? match[0] : null;
-        
-//         console.log(`Procesando:`, { 
-//           codigoQR: nuevoInventario, 
-//           consecutivo 
-//         });
-  
-//         // Verificación local primero
-//         const existeLocal = inventarios.some(inv => 
-//           inv.inventario?.endsWith(consecutivo)
-//         );
-        
-//         if (existeLocal) {
-//           const itemExistente = inventarios.find(inv => 
-//             inv.inventario?.endsWith(consecutivo)
-//           );
-//           Alert.alert(
-//             "Inventario ya asignado",
-//             `${itemExistente.descripcion}\n(${nuevoInventario})\nya está asignado al usuario.`,
-//             [{ text: "OK" }]
-//           );
-//           return;
-//         }
-  
-//         const response = await fetch(`http://172.16.1.154:8000/api/sci/inventario/reasignar`, {
-//           method: "PUT",
-//           headers: {
-//             "Content-Type": "application/json",
-//             "Accept": "application/json"
-//           },
-//           body: JSON.stringify({
-//             inventario: nuevoInventario.trim(),
-//             id_usuario: id
-//           }),
-//         });
-  
-//         const data = await response.json();
-  
-//         if (!response.ok || data.error) {
-//           throw new Error(data.message || "Error al asignar inventario");
-//         }
-  
-//         if (!data.inventario?.Id) {
-//           throw new Error("Respuesta inválida del servidor");
-//         }
-  
-//         // Actualización con animación
-//         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-//         setInventarios(prev => [data.inventario, ...prev]);
-        
-//         Alert.alert(
-//           "Asignado correctamente",
-//           `Descripción: ${data.inventario.descripcion || 'Sin descripción'}\nInventario: ${nuevoInventario || 'N/A'}\nse ha asignado correctamente.`,
-//           // `${data.inventario.descripcion} (${nuevoInventario})`,
-//           [{ text: "OK" }]
-//         );
-  
-//       } catch (error) {
-//         // console.error("Error en escaneo:", {
-//         //   error: error.message,
-//         //   timestamp: new Date().toISOString()
-//         // });
-        
-//         Alert.alert(
-//           "Error", 
-//           error.message.includes("no encontrado") 
-//             ? `El inventario no existe en el sistema`
-//             : error.message || "Error al procesar el QR"
-//         );
-//       }
-//     };
-  
-//     EventBus.on("qrScanned", listener);
-//     return () => EventBus.off("qrScanned", listener);
-//   }, [id, inventarios]);
-
-//   const handleDeleteInventario = useCallback(async (id) => {
-//     try {
-//       const response = await fetch(`http://172.16.1.154:8000/api/sci/inventario/${id}`, {
-//       // const response = await fetch(`http://192.168.68.105:8000/api/sci/inventario/${id}`, {
-//         method: "DELETE",
-//         headers: {
-//           Accept: "application/json",
-//           "Content-Type": "application/json",
-//         },
-//       });
-
-//       const data = await response.json();
-//       if (response.ok) {
-//         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-//         setInventarios((prev) => prev.filter((inv) => inv.Id !== id));
-//       } else {
-//         Alert.alert("Error", data.message || "No se pudo eliminar.");
-//       }
-//     } catch (error) {
-//       console.error("Error al eliminar:", error);
-//       Alert.alert("Error", "No se pudo eliminar el inventario.");
-//     }
-//   }, []);
-
-//   if (isLoading || !userInfo) {
-//     return (
-//       <View className="flex-1 bg-black justify-center items-center">
-//         <ActivityIndicator color="#44a4af" size="large" />
-//         <Text className="text-white text-base mt-4">Cargando información...</Text>
-//       </View>
-//     );
-//   }
-
-//   return (
-//     <Screen>
-//       <Stack.Screen
-//         options={{
-//           headerTitle: `${userInfo?.user?.nombre || "Desconocido"}`, 
-//         }}
-//       />
-
-//       <View className="flex-1 bg-black">
-//         <FlatList
-//           data={inventarios}
-//           className="px-5"
-//           keyExtractor={(inv) => inv.Id.toString()}
-//           renderItem={({ item, index }) => (
-//             <AnimateInvCard item={item} index={index} onDelete={handleDeleteInventario} />
-//           )}
-//           ListEmptyComponent={
-//             <View className="flex-1 justify-center items-center mt-20">
-//               <Text className="text-white text-lg font-bold">
-//                 No hay inventarios asignados
-//               </Text>
-//             </View>
-//           }
-//         />
-//       </View>
-
-//       <TouchableOpacity
-//         onPress={() => router.push({ pathname: "/scan", params: { userId: id } })}
-//         className="absolute bottom-8 right-4 bg-teal-500 w-16 h-16 rounded-full justify-center items-center shadow-lg shadow-black"
-//       >
-//         <Ionicons name="add" size={28} color="#25292e" />
-//       </TouchableOpacity>
-
-//     </Screen>
-//   );
-// }
-
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { 
   ActivityIndicator, 
@@ -247,86 +43,78 @@ export default function UserDetailScreen() {
     staleTime: 5 * 60 * 1000, // 5 minutos de cache
   });
 
-  // Mutación para reasignar inventario
   const reasignarMutation = useMutation({
     mutationFn: reasignarInventario,
-    onMutate: async ({ qr, userId }) => {
-      // Cancelar queries actuales
-      await queryClient.cancelQueries(['user', userId]);
-      
-      // Snapshot del valor anterior
-      const previousData = queryClient.getQueryData(['user', userId]);
-      
-      // Optimistic update
-      queryClient.setQueryData(['user', userId], (old) => ({
-        ...old,
-        inventarios: old.inventarios || []
-      }));
-      
-      return { previousData };
+    onSuccess: (response) => {
+      if (response.status === 'success') {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        
+        // Actualización optimista + invalidación de caché
+        queryClient.setQueryData(['user', id], (old) => {
+          if (!old) return old;
+          
+          // Para reactivación, actualiza el item existente
+          if (response.action === 'reactivated') {
+            return {
+              ...old,
+              inventarios: old.inventarios.map(inv => 
+                inv.Id === response.inventario.Id ? { 
+                  ...response.inventario, 
+                  deleted_at: null 
+                } : inv
+              )
+            };
+          }
+          
+          // Para reasignación, agrega el nuevo item
+          return {
+            ...old,
+            inventarios: [response.inventario, ...old.inventarios]
+          };
+        });
+  
+        // Forzar recarga de datos del usuario
+        queryClient.invalidateQueries(['user', id]);
+        
+        Alert.alert('Éxito', response.message);
+      }
     },
-    onError: (error, variables, context) => {
-      // Revertir al estado anterior en caso de error
-      queryClient.setQueryData(['user', id], context.previousData);
-      Alert.alert('Error', error.message);
-    },
-    onSuccess: (newItem) => {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      queryClient.setQueryData(['user', id], (old) => ({
-        ...old,
-        inventarios: [newItem, ...(old.inventarios || [])],
-      }));
-    },
-    onSettled: () => {
-      // Forzar recarga para asegurar sincronización
-      queryClient.invalidateQueries(['user', id]);
+    onError: (error) => {
+      if (!error.message.includes('ya está asignado')) {
+        Alert.alert('Error', error.message);
+      }
     }
   });
 
-  // Mutación para eliminar inventario
-  // const deleteMutation = useMutation({
-    // mutationFn: deleteInventario,
-    // onMutate: async (inventarioId) => {
-    //   await queryClient.cancelQueries(['user', id]);
-    //   const previousData = queryClient.getQueryData(['user', id]);
-      
-    //   queryClient.setQueryData(['user', id], (old) => ({
-    //     ...old,
-    //     inventarios: old.inventarios.filter(inv => inv.Id !== inventarioId),
-    //   }));
-      
-    //   return { previousData };
-    // },
-    // onError: (error, variables, context) => {
-    //   queryClient.setQueryData(['user', id], context.previousData);
-    //   Alert.alert('Error', 'No se pudo eliminar el inventario');
-    // },
-  // });
   const deleteMutation = useMutation({
     mutationFn: deleteInventario,
-    onSuccess: (deletedId) => {
-      queryClient.setQueryData(['user', id], (old) => ({
-        ...old,
-        inventarios: old.inventarios.filter(inv => inv.Id !== deletedId),
-      }));
+    onMutate: (inventarioId) => {
+      // No hacemos cambios optimistas aquí, la animación ya los maneja
+    },
+    onSuccess: () => {
+      // Invalidar la caché para obtener datos frescos
+      queryClient.invalidateQueries(['user', id]);
     },
     onError: (error) => {
       Alert.alert('Error', 'No se pudo eliminar el inventario');
-      // Aquí podrías agregar lógica para revertir visualmente si es necesario
+      // Opcional: Podrías agregar una animación para "revertir"
     }
   });
 
   // Función de eliminación simplificada
-  const handleDelete = useCallback((inventarioId) => {
+  const handleDelete = (inventarioId) => {
     Alert.alert(
       'Confirmar eliminación',
       '¿Estás seguro de eliminar este inventario?',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', onPress: () => deleteMutation.mutate(inventarioId) }
+        { 
+          text: 'Eliminar', 
+          onPress: () => deleteMutation.mutate(inventarioId) 
+        }
       ]
     );
-  }, []);
+  };
 
   // Manejo del escaneo QR
   useEffect(() => {
@@ -367,27 +155,11 @@ export default function UserDetailScreen() {
   }, [userData, search]);
 
   // Renderizar item de la lista (memoizado)
-  // const renderItem = useCallback(({ item, index }) => (
-    // <AnimateInvCard 
-    //   item={item} 
-    //   index={index}
-    //   onDelete={() => {
-    //     Alert.alert(
-    //       'Confirmar eliminación',
-    //       '¿Estás seguro de eliminar este inventario?',
-    //       [
-    //         { text: 'Cancelar', style: 'cancel' },
-    //         { text: 'Eliminar', onPress: () => deleteMutation.mutate(item.Id) }
-    //       ]
-    //     );
-    //   }}
-    // />
-  // ), []);
   const renderItem = useCallback(({ item, index }) => (
     <AnimateInvCard 
-      item={item} 
+      item={item}
       index={index}
-      onDelete={deleteMutation.mutate}
+      onDelete={deleteMutation.mutate} // Pasar directamente la mutación
     />
   ), []);
 
@@ -455,10 +227,9 @@ export default function UserDetailScreen() {
       {/* Lista de inventarios */}
       <FlatList
         data={filteredInventarios}
-        keyExtractor={(item) => item.Id.toString()}
+        keyExtractor={(item) => `inv-${item.Id}-${item.consecutivo}`}
         renderItem={renderItem}
-        refreshing={isLoading}
-        onRefresh={refetch}
+        extraData={reasignarMutation.isSuccess} // Forzar actualización cuando hay cambios
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center mt-20">
             <Text className="text-white text-lg">
@@ -466,10 +237,6 @@ export default function UserDetailScreen() {
             </Text>
           </View>
         }
-        contentContainerStyle={{ paddingBottom: 90 }}
-        initialNumToRender={10}
-        maxToRenderPerBatch={5}
-        windowSize={10}
       />
 
       {/* Botón de acción flotante */}
