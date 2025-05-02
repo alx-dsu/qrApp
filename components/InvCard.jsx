@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback   } from "react";
 import { View, Text, Animated, Alert, Pressable } from "react-native";
-import "../global.css";
+import "@/global.css";
 
 // export default function InvCard({ item, onPrepareDelete   }) {
 export default function InvCard({ item, onDelete }) {
@@ -27,17 +27,16 @@ export default function InvCard({ item, onDelete }) {
 
   return (
     <View 
-      className="active:opacity-70 border border-black 
-    active:border-white/50 mb-2 bg-gray-200/10 rounded-xl p-4"
+    //   className="active:opacity-70 border border-black 
+    // active:border-white/50 mb-2 bg-gray-200/10 rounded-xl p-4"
+    className="active:opacity-70 border border-gray-800 active:border-teal-500/50 mb-2 bg-gray-800 rounded-xl p-4"
     >
-      <Text className="text-white font-bold">
+      <Text className="text-white text-lg font-semibold mb-1">
         {item.descripcion || "Descripción no disponible"}
       </Text>
-      <Text className="text-gray-400">
+      <Text className="text-gray-400 text-sm mb-1">
         Inventario: {item.inventario || "N/A"}
       </Text>
-      {/* <Pressable onPress={handleDelete} className="mt-2 bg-red-500 p-2 rounded-xl"> */}
-      {/* <Pressable onPress={() => onDelete(item.Id)}  className="mt-2 bg-red-500 p-2 rounded-xl"> */}
       <Pressable 
         onPress={onDelete} // Solo pasa la función, no ejecuta
         className="mt-2 bg-red-500 p-2 rounded-xl"

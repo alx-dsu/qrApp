@@ -6,7 +6,7 @@ import {
   View,
   Text,
 } from "react-native";
-import "../global.css";
+import "@/global.css";
 import { getLatestUsers } from "@/lib/users.js";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { UserCard, AnimateUserCard } from "./UserCard.jsx";

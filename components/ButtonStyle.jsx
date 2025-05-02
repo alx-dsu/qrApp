@@ -1,7 +1,7 @@
 import { View, Pressable, Text } from "react-native";
 import PropTypes from "prop-types";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import "../global.css"
+import "@/global.css"
 
 export default function ButtonStyle({ 
   label, 
