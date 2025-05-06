@@ -2,6 +2,8 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Platform, Text } from "react-native";
 
+import ScanScreen from '@/app/scan';
+
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/react-query';
 // import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -36,7 +38,7 @@ export default function RootLayout() {
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" options={{title: "Pagina no encontrada"}} />
-          <Stack.Screen name="scan" options={{title: "Escanear QR"}}/>
+          <Stack.Screen name="scan" options={{title: "Escanear QR"}} component={ScanScreen}/>
         </Stack>
         <StatusBar style="light" />
       </>
