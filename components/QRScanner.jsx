@@ -3,7 +3,7 @@ import { View, Text, ActivityIndicator, Linking, Dimensions, Alert } from "react
 import { CameraView, useCameraPermissions } from "expo-camera";
 import ButtonStyle from "@/components/ButtonStyle";
 import { qrScannerStyles } from "@/utils/styles";
-import "../global.css"
+import "@/global.css"
 
 // import * as Haptics from 'expo-haptics';
 // import { Audio } from 'expo-av';
